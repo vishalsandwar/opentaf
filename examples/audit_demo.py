@@ -1,7 +1,13 @@
-from opentaf.audit.events import AuditEvent, AuditLogger
+from opentaf.audit.events import (
+    AuditEvent,
+    AuditLogger,
+    InMemoryAuditRepository,
+)
 
 
-audit = AuditLogger()
+repository = InMemoryAuditRepository()
+
+audit = AuditLogger(repository)
 
 
 audit.record(

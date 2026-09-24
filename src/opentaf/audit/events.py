@@ -1,10 +1,11 @@
 """
 OpenTAF Audit & Event Framework
 
-Provides a lightweight audit mechanism for recording
+Provides a provider-independent audit mechanism for recording
 agent, tool, policy, approval and execution events.
 """
 
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
@@ -28,21 +29,53 @@ class AuditEvent:
     details: Dict[str, str] = field(default_factory=dict)
 
 
-class AuditLogger:
-    """In-memory audit logger for the OpenTAF reference implementation."""
+class AuditRepository(ABC):
+    """Abstract interface for audit event persistence."""
+
+    @abstractmethod
+    def save(self, event: AuditEvent) -> None:
+        """Persist an audit event."""
+
+    @abstractmethod
+    def list_events(self) -> List[AuditEvent]:
+        """Return all audit events."""
+
+
+class InMemoryAuditRepository(AuditRepository):
+    """In-memory audit repository for development and testing."""
 
     def __init__(self) -> None:
         self._events: List[AuditEvent] = []
 
-    def record(self, event: AuditEvent) -> None:
-        """Record an audit event."""
+    def save(self, event: AuditEvent) -> None:
+        """Store an audit event in memory."""
 
         self._events.append(event)
 
     def list_events(self) -> List[AuditEvent]:
-        """Return all recorded events."""
+        """Return all stored audit events."""
 
         return list(self._events)
+
+
+class AuditLogger:
+    """Application-level audit service."""
+
+    def __init__(
+        self,
+        repository: AuditRepository,
+    ) -> None:
+        self._repository = repository
+
+    def record(self, event: AuditEvent) -> None:
+        """Record an audit event."""
+
+        self._repository.save(event)
+
+    def list_events(self) -> List[AuditEvent]:
+        """Return all recorded events."""
+
+        return self._repository.list_events()
 
     def find_by_agent(
         self,
@@ -52,7 +85,7 @@ class AuditLogger:
 
         return [
             event
-            for event in self._events
+            for event in self.list_events()
             if event.agent_id == agent_id
         ]
 
@@ -64,6 +97,6 @@ class AuditLogger:
 
         return [
             event
-            for event in self._events
+            for event in self.list_events()
             if event.event_type == event_type
         ]
