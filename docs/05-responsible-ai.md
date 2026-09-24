@@ -5,9 +5,9 @@
 **Status:** Architecture Foundation
 **Version:** 0.1
 **Author:** Vishal Sandwar
-**Role:** Creator & Lead Architect
+**Role:** Creator & Lead Architect 
 
----
+--------
 
 ## 1. Purpose
 
