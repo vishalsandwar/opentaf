@@ -2,7 +2,7 @@
 OpenTAF Orchestrator
 
 Coordinates agents, enterprise tools, policy decisions,
-human approval requirements and audit events.
+human approvals and audit events.
 """
 
 from dataclasses import dataclass
@@ -10,6 +10,7 @@ from typing import Dict, Optional
 
 from opentaf.agents.registry import AgentRegistry
 from opentaf.audit.events import AuditEvent, AuditLogger
+from opentaf.governance.approval import ApprovalService
 from opentaf.governance.policy import PolicyEngine
 from opentaf.tools.registry import ToolRegistry
 
@@ -34,6 +35,7 @@ class OrchestrationResult:
     status: str
     message: str
     human_approval_required: bool = False
+    approval_id: Optional[str] = None
     execution_result: Optional[str] = None
 
 
@@ -46,11 +48,13 @@ class Orchestrator:
         tool_registry: ToolRegistry,
         policy_engine: PolicyEngine,
         audit_logger: AuditLogger,
+        approval_service: ApprovalService,
     ) -> None:
         self._agent_registry = agent_registry
         self._tool_registry = tool_registry
         self._policy_engine = policy_engine
         self._audit_logger = audit_logger
+        self._approval_service = approval_service
 
     def process(
         self,
@@ -111,24 +115,150 @@ class Orchestrator:
             )
 
         if decision.requires_human_approval:
+            approval_id = f"APR-{request.request_id}"
+
+            approval = self._approval_service.create_request(
+                approval_id=approval_id,
+                request_id=request.request_id,
+                agent_id=agent.agent_id,
+                tool_id=tool.tool_id,
+                action=request.action,
+                requested_by=request.user_id,
+                reason=decision.reason,
+            )
+
+            self._audit_logger.record(
+                AuditEvent(
+                    event_id=f"{request.request_id}-APPROVAL",
+                    event_type="HUMAN_APPROVAL_REQUEST",
+                    agent_id=agent.agent_id,
+                    user_id=request.user_id,
+                    tool_id=tool.tool_id,
+                    action=request.action,
+                    decision="pending",
+                    outcome="awaiting_human_approval",
+                    details={
+                        "approval_id": approval.approval_id,
+                    },
+                )
+            )
+
             return OrchestrationResult(
                 request_id=request.request_id,
                 status="pending_approval",
-                message=decision.reason,
+                message="Human approval is required.",
                 human_approval_required=True,
+                approval_id=approval.approval_id,
             )
 
+        return self._execute(
+            request=request,
+            agent_id=agent.agent_id,
+            tool_id=tool.tool_id,
+        )
+
+    def approve_and_execute(
+        self,
+        approval_id: str,
+        decided_by: str,
+        decision_reason: str,
+    ) -> OrchestrationResult:
+        """Approve a pending request and execute the tool."""
+
+        approval = self._approval_service.approve(
+            approval_id=approval_id,
+            decided_by=decided_by,
+            decision_reason=decision_reason,
+        )
+
+        self._audit_logger.record(
+            AuditEvent(
+                event_id=f"{approval.request_id}-APPROVED",
+                event_type="HUMAN_APPROVAL",
+                agent_id=approval.agent_id,
+                user_id=approval.requested_by,
+                tool_id=approval.tool_id,
+                action=approval.action,
+                decision="approved",
+                outcome="approved_for_execution",
+                details={
+                    "approval_id": approval.approval_id,
+                    "decided_by": decided_by,
+                },
+            )
+        )
+
+        request = OrchestrationRequest(
+            request_id=approval.request_id,
+            user_id=approval.requested_by,
+            agent_id=approval.agent_id,
+            tool_id=approval.tool_id,
+            action=approval.action,
+            context={},
+        )
+
+        return self._execute(
+            request=request,
+            agent_id=approval.agent_id,
+            tool_id=approval.tool_id,
+        )
+
+    def reject_approval(
+        self,
+        approval_id: str,
+        decided_by: str,
+        decision_reason: str,
+    ) -> OrchestrationResult:
+        """Reject a pending request."""
+
+        approval = self._approval_service.reject(
+            approval_id=approval_id,
+            decided_by=decided_by,
+            decision_reason=decision_reason,
+        )
+
+        self._audit_logger.record(
+            AuditEvent(
+                event_id=f"{approval.request_id}-REJECTED",
+                event_type="HUMAN_APPROVAL",
+                agent_id=approval.agent_id,
+                user_id=approval.requested_by,
+                tool_id=approval.tool_id,
+                action=approval.action,
+                decision="rejected",
+                outcome="execution_blocked",
+                details={
+                    "approval_id": approval.approval_id,
+                    "decided_by": decided_by,
+                },
+            )
+        )
+
+        return OrchestrationResult(
+            request_id=approval.request_id,
+            status="rejected",
+            message="Human approval was rejected.",
+        )
+
+    def _execute(
+        self,
+        request: OrchestrationRequest,
+        agent_id: str,
+        tool_id: str,
+    ) -> OrchestrationResult:
+        """Execute an authorised enterprise tool."""
+
         execution_result = (
-            f"Tool {tool.tool_id} executed successfully."
+            f"Tool {tool_id} executed successfully."
         )
 
         self._audit_logger.record(
             AuditEvent(
                 event_id=f"{request.request_id}-EXECUTION",
                 event_type="TOOL_EXECUTION",
-                agent_id=agent.agent_id,
+                agent_id=agent_id,
                 user_id=request.user_id,
-                tool_id=tool.tool_id,
+                tool_id=tool_id,
                 action=request.action,
                 decision="approved",
                 outcome="executed",

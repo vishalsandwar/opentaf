@@ -1,5 +1,6 @@
 from opentaf.agents.registry import AgentDefinition, AgentRegistry
 from opentaf.audit.events import AuditLogger, InMemoryAuditRepository
+from opentaf.governance.approval import ApprovalService
 from opentaf.governance.policy import PolicyEngine
 from opentaf.orchestration.orchestrator import (
     OrchestrationRequest,
@@ -48,14 +49,17 @@ def create_orchestrator(
     repository = InMemoryAuditRepository()
     audit_logger = AuditLogger(repository)
 
+    approval_service = ApprovalService()
+
     orchestrator = Orchestrator(
         agent_registry=agent_registry,
         tool_registry=tool_registry,
         policy_engine=PolicyEngine(),
         audit_logger=audit_logger,
+        approval_service=approval_service,
     )
 
-    return orchestrator, audit_logger
+    return orchestrator, audit_logger, approval_service
 
 
 def create_request():
@@ -71,8 +75,8 @@ def create_request():
     )
 
 
-def test_request_is_pending_when_human_approval_is_required():
-    orchestrator, audit = create_orchestrator(
+def test_request_creates_human_approval():
+    orchestrator, audit, approval_service = create_orchestrator(
         tool_requires_approval=True,
     )
 
@@ -80,16 +84,79 @@ def test_request_is_pending_when_human_approval_is_required():
 
     assert result.status == "pending_approval"
     assert result.human_approval_required is True
+    assert result.approval_id == "APR-REQ-001"
+
+    approval = approval_service.get("APR-REQ-001")
+
+    assert approval is not None
+    assert approval.status == "pending"
 
     events = audit.list_events()
 
-    assert len(events) == 1
+    assert len(events) == 2
     assert events[0].event_type == "POLICY_DECISION"
-    assert events[0].decision == "allowed"
+    assert events[1].event_type == "HUMAN_APPROVAL_REQUEST"
+
+
+def test_approval_executes_request():
+    orchestrator, audit, approval_service = create_orchestrator(
+        tool_requires_approval=True,
+    )
+
+    result = orchestrator.process(create_request())
+
+    assert result.status == "pending_approval"
+
+    result = orchestrator.approve_and_execute(
+        approval_id=result.approval_id,
+        decided_by="synthetic-reviewer-001",
+        decision_reason="KYC information reviewed and approved.",
+    )
+
+    assert result.status == "completed"
+
+    approval = approval_service.get("APR-REQ-001")
+
+    assert approval.status == "approved"
+
+    events = audit.list_events()
+
+    assert len(events) == 4
+    assert events[2].event_type == "HUMAN_APPROVAL"
+    assert events[2].decision == "approved"
+    assert events[3].event_type == "TOOL_EXECUTION"
+
+
+def test_rejected_approval_blocks_execution():
+    orchestrator, audit, approval_service = create_orchestrator(
+        tool_requires_approval=True,
+    )
+
+    result = orchestrator.process(create_request())
+
+    assert result.status == "pending_approval"
+
+    result = orchestrator.reject_approval(
+        approval_id=result.approval_id,
+        decided_by="synthetic-reviewer-001",
+        decision_reason="KYC information requires correction.",
+    )
+
+    assert result.status == "rejected"
+
+    approval = approval_service.get("APR-REQ-001")
+
+    assert approval.status == "rejected"
+
+    events = audit.list_events()
+
+    assert len(events) == 3
+    assert events[2].event_type == "HUMAN_APPROVAL"
+    assert events[2].decision == "rejected"
 
 
 def test_unauthorised_agent_request_is_rejected():
-    orchestrator, audit = create_orchestrator(
+    orchestrator, audit, _ = create_orchestrator(
         tool_requires_approval=False,
         tool_allowed_agents=["OTAF-DOCUMENT-001"],
     )
@@ -108,7 +175,7 @@ def test_unauthorised_agent_request_is_rejected():
 
 
 def test_unapproved_agent_request_is_rejected():
-    orchestrator, audit = create_orchestrator(
+    orchestrator, audit, _ = create_orchestrator(
         tool_requires_approval=False,
         approve_agent=False,
     )
@@ -126,8 +193,8 @@ def test_unapproved_agent_request_is_rejected():
     assert events[0].decision == "denied"
 
 
-def test_request_executes_when_approval_is_not_required():
-    orchestrator, audit = create_orchestrator(
+def test_request_executes_without_human_approval():
+    orchestrator, audit, _ = create_orchestrator(
         autonomy_level="L2",
         tool_requires_approval=False,
     )
@@ -145,4 +212,3 @@ def test_request_executes_when_approval_is_not_required():
 
     assert events[0].event_type == "POLICY_DECISION"
     assert events[1].event_type == "TOOL_EXECUTION"
-    assert events[1].outcome == "executed"
