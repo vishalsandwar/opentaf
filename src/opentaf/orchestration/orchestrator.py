@@ -2,7 +2,7 @@
 OpenTAF Orchestrator
 
 Coordinates agents, enterprise tools, policy decisions,
-human approvals and audit events.
+human approvals, tool execution and audit events.
 """
 
 from dataclasses import dataclass
@@ -12,6 +12,7 @@ from opentaf.agents.registry import AgentRegistry
 from opentaf.audit.events import AuditEvent, AuditLogger
 from opentaf.governance.approval import ApprovalService
 from opentaf.governance.policy import PolicyEngine
+from opentaf.tools.executor import ToolExecutor
 from opentaf.tools.registry import ToolRegistry
 
 
@@ -36,7 +37,7 @@ class OrchestrationResult:
     message: str
     human_approval_required: bool = False
     approval_id: Optional[str] = None
-    execution_result: Optional[str] = None
+    execution_result: Optional[object] = None
 
 
 class Orchestrator:
@@ -49,12 +50,14 @@ class Orchestrator:
         policy_engine: PolicyEngine,
         audit_logger: AuditLogger,
         approval_service: ApprovalService,
+        tool_executor: ToolExecutor,
     ) -> None:
         self._agent_registry = agent_registry
         self._tool_registry = tool_registry
         self._policy_engine = policy_engine
         self._audit_logger = audit_logger
         self._approval_service = approval_service
+        self._tool_executor = tool_executor
 
     def process(
         self,
@@ -125,6 +128,7 @@ class Orchestrator:
                 action=request.action,
                 requested_by=request.user_id,
                 reason=decision.reason,
+                context=request.context,
             )
 
             self._audit_logger.record(
@@ -194,7 +198,7 @@ class Orchestrator:
             agent_id=approval.agent_id,
             tool_id=approval.tool_id,
             action=approval.action,
-            context={},
+            context=approval.context,
         )
 
         return self._execute(
@@ -248,9 +252,36 @@ class Orchestrator:
     ) -> OrchestrationResult:
         """Execute an authorised enterprise tool."""
 
-        execution_result = (
-            f"Tool {tool_id} executed successfully."
-        )
+        try:
+            execution_result = self._tool_executor.execute(
+                tool_id=tool_id,
+                action=request.action,
+                parameters=request.context,
+            )
+
+        except Exception as exc:
+            self._audit_logger.record(
+                AuditEvent(
+                    event_id=f"{request.request_id}-EXECUTION-FAILED",
+                    event_type="TOOL_EXECUTION",
+                    agent_id=agent_id,
+                    user_id=request.user_id,
+                    tool_id=tool_id,
+                    action=request.action,
+                    decision="approved",
+                    outcome="execution_failed",
+                    details={
+                        "request_id": request.request_id,
+                        "error": str(exc),
+                    },
+                )
+            )
+
+            return OrchestrationResult(
+                request_id=request.request_id,
+                status="execution_failed",
+                message="Tool execution failed.",
+            )
 
         self._audit_logger.record(
             AuditEvent(

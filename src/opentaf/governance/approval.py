@@ -5,7 +5,7 @@ Provides a provider-independent mechanism for managing
 human approval decisions for governed agent actions.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Dict, Optional
 
 
@@ -20,6 +20,7 @@ class ApprovalRequest:
     action: str
     requested_by: str
     reason: str
+    context: Dict[str, str] = field(default_factory=dict)
     status: str = "pending"
     decided_by: Optional[str] = None
     decision_reason: Optional[str] = None
@@ -40,6 +41,7 @@ class ApprovalService:
         action: str,
         requested_by: str,
         reason: str,
+        context: Optional[Dict[str, str]] = None,
     ) -> ApprovalRequest:
         """Create a new approval request."""
 
@@ -56,6 +58,7 @@ class ApprovalService:
             action=action,
             requested_by=requested_by,
             reason=reason,
+            context=context or {},
         )
 
         self._requests[approval_id] = request

@@ -6,7 +6,14 @@ from opentaf.orchestration.orchestrator import (
     OrchestrationRequest,
     Orchestrator,
 )
+from opentaf.tools.executor import InMemoryToolExecutor
 from opentaf.tools.registry import ToolDefinition, ToolRegistry
+
+
+
+class SyntheticKYCExecutor:
+    def validate_kyc(self, customer_id):
+        return f"KYC validation completed for {customer_id}"
 
 
 def create_orchestrator(
@@ -50,6 +57,12 @@ def create_orchestrator(
     audit_logger = AuditLogger(repository)
 
     approval_service = ApprovalService()
+    tool_executor = InMemoryToolExecutor()
+
+    tool_executor.register(
+        "TOOL-KYC-VALIDATE",
+        SyntheticKYCExecutor(),
+    )
 
     orchestrator = Orchestrator(
         agent_registry=agent_registry,
@@ -57,6 +70,7 @@ def create_orchestrator(
         policy_engine=PolicyEngine(),
         audit_logger=audit_logger,
         approval_service=approval_service,
+        tool_executor=tool_executor,
     )
 
     return orchestrator, audit_logger, approval_service
@@ -203,7 +217,7 @@ def test_request_executes_without_human_approval():
 
     assert result.status == "completed"
     assert result.execution_result == (
-        "Tool TOOL-KYC-VALIDATE executed successfully."
+        "KYC validation completed for SYN-CUST-001"
     )
 
     events = audit.list_events()
