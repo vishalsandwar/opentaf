@@ -34,7 +34,7 @@ kyc_tool = ToolDefinition(
     name="KYC Validation Tool",
     purpose="Validate synthetic customer KYC information",
     risk_level="high",
-    allowed_agents=["OTAF-KYC-001"],
+    allowed_agents=["OTAF-DOCUMENT-001"],
     requires_human_approval=True,
 )
 
