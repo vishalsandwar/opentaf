@@ -1,8 +1,17 @@
-from opentaf.audit.events import AuditEvent, AuditLogger
+from opentaf.audit.events import (
+    AuditEvent,
+    AuditLogger,
+    InMemoryAuditRepository,
+)
+
+
+def create_audit_logger():
+    repository = InMemoryAuditRepository()
+    return AuditLogger(repository)
 
 
 def test_audit_event_can_be_recorded():
-    audit = AuditLogger()
+    audit = create_audit_logger()
 
     event = AuditEvent(
         event_id="EVT-001",
@@ -20,7 +29,7 @@ def test_audit_event_can_be_recorded():
 
 
 def test_events_can_be_filtered_by_agent():
-    audit = AuditLogger()
+    audit = create_audit_logger()
 
     audit.record(
         AuditEvent(
@@ -45,7 +54,7 @@ def test_events_can_be_filtered_by_agent():
 
 
 def test_events_can_be_filtered_by_type():
-    audit = AuditLogger()
+    audit = create_audit_logger()
 
     audit.record(
         AuditEvent(
