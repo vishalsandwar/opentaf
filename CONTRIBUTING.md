@@ -1,6 +1,3 @@
-cd /workspaces/opentaf
-
-cat > CONTRIBUTING.md <<'EOF'
 # Contributing to OpenTAF
 
 Thank you for your interest in contributing to OpenTAF!
