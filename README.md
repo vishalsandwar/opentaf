@@ -278,3 +278,23 @@ Apache License 2.0
 Technology Transformation & Enterprise Architecture
 
 OpenTAF is an independent open-source project exploring the intersection of enterprise architecture, digital transformation and Agentic AI.
+
+## Getting Started
+
+New to OpenTAF? Follow the [Getting Started Guide](docs/getting-started.md) to install the framework, run the examples, and execute the test suite.
+
+### Quick Start
+
+```bash
+git clone https://github.com/vishalsandwar/opentaf.git
+cd opentaf
+python -m pip install -e .
+python examples/multi_agent_kyc_demo.py
+```
+
+Run the tests with:
+
+```bash
+python -m pip install pytest
+python -m pytest -q
+```
