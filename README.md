@@ -30,6 +30,23 @@ The project is designed as a **reference architecture and working implementation
 
 ---
 
+## Getting Started
+
+New to OpenTAF? Follow the [Getting Started Guide](docs/getting-started.md) to install the framework, run the examples, and execute the test suite.
+
+```bash
+git clone https://github.com/vishalsandwar/opentaf.git
+cd opentaf
+python -m pip install -e .
+python examples/multi_agent_kyc_demo.py
+```
+
+Run the tests with:
+
+```bash
+python -m pip install pytest
+python -m pytest -q
+```
 ## Vision
 
 AI adoption is moving beyond individual models and chatbots toward systems in which multiple specialised agents can reason, collaborate, use enterprise tools and execute defined activities.
