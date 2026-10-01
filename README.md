@@ -29,6 +29,58 @@ OpenTAF brings together:
 The project combines a **reference architecture with working implementations and examples**, with particular relevance to regulated and complex enterprises.
 
 ---
+## What OpenTAF Contributes
+
+OpenTAF focuses on an architectural gap emerging as enterprises move from AI experimentation toward **Agentic AI-enabled transformation**.
+
+While AI and agent frameworks provide mechanisms for building and orchestrating agents, enterprise adoption also requires an architecture that connects:
+
+**Business Transformation → Enterprise Architecture → Agentic AI → Governance → Responsible AI → Controlled Execution**
+
+OpenTAF explores this intersection through an open reference framework and working implementation.
+
+### The OpenTAF contribution
+
+The framework brings together five complementary perspectives:
+
+| Area | OpenTAF Focus |
+| --- | --- |
+| **Enterprise Transformation** | Connect business capabilities, processes, transformation objectives and AI opportunities |
+| **Agentic AI Architecture** | Define agents, orchestration, tools, context, memory and enterprise integration |
+| **AI Governance** | Establish identity, permissions, policies, human approval, auditability and monitoring |
+| **Responsible AI** | Maintain appropriate human oversight, transparency and control |
+| **Transformation Maturity** | Provide a progression from digital capabilities toward governed autonomous operations |
+
+A central architectural concept explored by OpenTAF is **bounded autonomy**: enabling AI agents to perform increasingly sophisticated activities while maintaining explicit boundaries around authority, data access, tool usage, human oversight and auditability.
+
+```text
+                 Enterprise Transformation
+                           |
+                           v
+                    AI Opportunity
+                           |
+                           v
+                  Agentic Architecture
+                           |
+              +------------+------------+
+              |                         |
+              v                         v
+        Agent Capability          Enterprise Tools
+              |                         |
+              +------------+------------+
+                           |
+                           v
+                    Governance Layer
+                           |
+          +----------------+----------------+
+          |                |                |
+          v                v                v
+       Policy          Human Review       Audit
+          |                |                |
+          +----------------+----------------+
+                           |
+                           v
+                   Bounded Autonomy
 
 ## What OpenTAF Contributes
 
