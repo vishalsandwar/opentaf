@@ -10,7 +10,7 @@
 
 OpenTAF is an open-source architectural framework exploring how organisations can integrate **Enterprise Architecture, Digital Transformation and Agentic AI** into a governed and scalable operating model.
 
-The framework focuses on a practical enterprise question:
+The framework addresses a practical enterprise question:
 
 > **How can organisations safely design, govern and scale AI agents as part of digital transformation?**
 
@@ -26,7 +26,7 @@ OpenTAF brings together:
 * Security and control
 * AI-enabled operating models
 
-The project is designed as a **reference architecture and working implementation**, with particular relevance to regulated and complex enterprises.
+The project combines a **reference architecture with working implementations and examples**, with particular relevance to regulated and complex enterprises.
 
 ---
 
@@ -38,7 +38,7 @@ While AI and agent frameworks provide mechanisms for building and orchestrating 
 
 **Business Transformation → Enterprise Architecture → Agentic AI → Governance → Responsible AI → Controlled Execution**
 
-OpenTAF explores this intersection through an open reference framework and working implementation.
+OpenTAF explores this intersection through an open reference framework and working implementations.
 
 ### The OpenTAF contribution
 
@@ -98,7 +98,7 @@ This creates a new architectural challenge.
 
 Organisations need to consider not only:
 
-**"Which AI model should we use?"**
+> **"Which AI model should we use?"**
 
 but also:
 
@@ -184,7 +184,7 @@ OpenTAF proposes a maturity model describing the progression from:
 
 ---
 
-## Reference Implementation
+## Reference Implementations
 
 OpenTAF includes working reference implementations demonstrating how the architectural concepts can be applied.
 
@@ -217,7 +217,7 @@ Human Review
 Enterprise System
 ```
 
-The reference implementations use **synthetic data** and do not contain confidential information from any organisation.
+Reference implementations use **synthetic data** and do not contain confidential information from any organisation.
 
 ---
 
@@ -259,46 +259,40 @@ Technology choices may evolve as the framework develops.
 
 **Current status: Early-stage open-source reference implementation**
 
-OpenTAF has established its initial architectural model, principles, reference patterns and working examples.
+OpenTAF has established its initial:
 
-The repository currently includes:
-
-* Core OpenTAF architecture
-* Agent registry and orchestration concepts
-* AI governance patterns
+* Architectural model
+* Architecture principles
+* Agentic AI reference patterns
+* Governance concepts
 * Responsible AI principles
 * Transformation maturity model
-* Reference implementations
-* Multi-agent examples
-* Automated tests
-* Documentation
-* Contribution guidelines
-* Security guidance
-* Continuous integration
+* Working examples
+* Automated test suite
+* Documentation and contribution guidance
 
-The project remains under active development and is intentionally open to architectural review, experimentation and community contribution.
+The project remains under active development and is intentionally open to **architectural review, experimentation and community contribution**.
 
 ---
 
 ## Roadmap
 
-### Phase 1 — Foundation
+### Foundation
 
-* [x] Project created
+* [x] Core OpenTAF architecture
 * [x] Architecture principles
-* [x] OpenTAF reference architecture
 * [x] Agentic AI reference model
-* [x] Agent governance model
+* [x] Agent governance concepts
 * [x] Responsible AI model
 * [x] Transformation maturity model
-* [x] Reference implementation
+* [x] Reference implementations
 * [x] Demonstration use cases
 * [x] Automated testing
 * [x] Documentation
 * [x] Contribution guidelines
 * [x] Security guidance
 
-### Phase 2 — Architecture Evolution
+### Architecture Evolution
 
 * [ ] Architecture Decision Records
 * [ ] Expanded agent orchestration patterns
@@ -307,7 +301,7 @@ The project remains under active development and is intentionally open to archit
 * [ ] Agent evaluation and monitoring patterns
 * [ ] Additional regulated-industry reference implementations
 
-### Phase 3 — Community & Adoption
+### Community & Adoption
 
 * [ ] Independent technical reviews
 * [ ] Community discussions
@@ -316,11 +310,11 @@ The project remains under active development and is intentionally open to archit
 * [ ] Adoption examples
 * [ ] Community-maintained patterns
 
-### Phase 4 — Mature Release
+### Future Release
 
-* [ ] Docker deployment
-* [ ] Expanded integration testing
 * [ ] Production-oriented reference patterns
+* [ ] Expanded integration testing
+* [ ] Containerised deployment examples
 * [ ] v1.0 release
 
 ---
@@ -340,7 +334,7 @@ Feedback is particularly welcomed from practitioners and researchers working in:
 * BFSI technology
 * Multi-agent systems
 
-Reviewers are encouraged to challenge the architecture, identify gaps, propose improvements and contribute alternative perspectives.
+Reviewers are encouraged to **challenge the architecture, identify gaps, propose improvements and contribute alternative perspectives**.
 
 Areas of particular interest include:
 
@@ -408,5 +402,3 @@ Apache License 2.0
 Technology Transformation & Enterprise Architecture
 
 OpenTAF is an independent open-source project exploring the intersection of enterprise architecture, digital transformation and Agentic AI.
-
----
